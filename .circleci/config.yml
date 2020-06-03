@@ -3,7 +3,7 @@
 version: 2.1
 # Use a package of configuration called an orb.
 orbs:
-  # Declare a dependency on the welcome-orb
+  # Security scan orb
   sast-scan: appthreat/sast-scan@dev:master
 # Orchestrate or schedule a set of jobs
 jobs:
