@@ -4,7 +4,7 @@ version: 2.1
 # Use a package of configuration called an orb.
 orbs:
   # Security scan orb
-  sast-scan: appthreat/sast-scan@master
+  sast-scan: appthreat/sast-scan
 # Orchestrate or schedule a set of jobs
 jobs:
   build:
