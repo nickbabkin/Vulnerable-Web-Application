@@ -4,11 +4,37 @@ version: 2.1
 # Use a package of configuration called an orb.
 orbs:
   # Declare a dependency on the welcome-orb
-  welcome: circleci/welcome-orb@0.4.1
+  sast-scan: appthreat/sast-scan@dev:master
 # Orchestrate or schedule a set of jobs
-workflows:
-  # Name the workflow "welcome"
-  welcome:
-    # Run the welcome/run job in its own container
-    jobs:
-      - welcome/run
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:11.0.3-jdk-stretch
+    working_directory: ~/repo
+
+    environment:
+      MAVEN_OPTS: -Xmx3200m
+
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Compile and prepare volume
+          command: |
+            # Compile the code
+            mvn compile
+            # Create a dummy container with the application data
+            docker create -v /app --name appcon alpine:3.4 /bin/true
+            # Copy the repo to the temporary volume
+            docker cp $PWD appcon:/app
+      - run:
+          name: Perform sast-scan
+          command: |
+            set +e
+            # start an application container using this volume
+            docker run --name sastscan -e "WORKSPACE=${CIRCLE_REPOSITORY_URL}" --volumes-from appcon quay.io/appthreat/sast-scan scan --src /app --out_dir /app/reports
+            # Copy the reports
+            docker cp sastscan:/app/reports reports
+      - store_artifacts:
+          path: reports
+          destination: sast-scan-reports
